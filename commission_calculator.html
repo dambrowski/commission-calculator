@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Multi-Seller Commission Calculator</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; }
+    h1 { text-align: center; }
+    img.brand { display: block; margin: 20px auto; max-width: 100%; height: auto; }
+    label { display: block; margin: 10px 0 4px; font-weight: bold; }
+    input { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
+    .nets { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .row { display: flex; gap: 10px; }
+    .row input { flex: 1; }
+    button { margin: 20px 0; padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background: #1F4E78; color: white; }
+  </style>
+</head>
+<body>
+  <h1>Commission Calculator</h1>
+  <img src="david_0827306164.jpg" alt="Branding" class="brand" />
+
+  <label>Seller Net Amounts (R):</label>
+  <div class="nets">
+    <input class="net" placeholder="e.g. 2,700,000 or 2 700 000" type="text" />
+    <input class="net" placeholder="e.g. 3,000,000" type="text" />
+    <input class="net" placeholder="e.g. 2,500,000" type="text" />
+    <input class="net" placeholder="e.g. 3,200,000" type="text" />
+  </div>
+
+  <label>VAT %:</label>
+  <input id="vat" type="number" step="0.01" value="15" />
+
+  <label>Commission % Excl. VAT (6 scenarios):</label>
+  <div class="row">
+    <input class="comm" placeholder="e.g. 5.00" />
+    <input class="comm" placeholder="e.g. 5.75" />
+    <input class="comm" placeholder="e.g. 6.50" />
+  </div>
+  <div class="row">
+    <input class="comm" placeholder="e.g. 7.25" />
+    <input class="comm" placeholder="e.g. 8.00" />
+    <input class="comm" placeholder="e.g. 8.75" />
+  </div>
+
+  <button onclick="calculate()">Calculate All</button>
+
+  <div id="output"></div>
+
+  <script>
+    function formatCurrency(x) {
+      return "R" + x.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    function parseNumber(str) {
+      return parseFloat(str.replace(/[\s,]/g, ''));
+    }
+    function calculate() {
+      const netEls = document.querySelectorAll("input.net");
+      const vat = parseFloat(document.getElementById("vat").value) / 100;
+      const commEls = document.querySelectorAll("input.comm");
+      let html = `<table>
+        <tr>
+          <th>Net Amount (R)</th>
+          <th>Commission % Excl. VAT</th>
+          <th>Rate (incl VAT)</th>
+          <th>Commission (incl VAT)</th>
+          <th>Listing Price</th>
+        </tr>`;
+      netEls.forEach(netEl => {
+        const netVal = parseNumber(netEl.value);
+        if (!isNaN(netVal)) {
+          commEls.forEach(commEl => {
+            const c = parseNumber(commEl.value) / 100;
+            if (!isNaN(c)) {
+              const rate = c * (1 + vat);
+              const listing = netVal / (1 - rate);
+              const fee = listing * rate;
+              html += `<tr>
+                <td>${formatCurrency(netVal)}</td>
+                <td>${(c*100).toFixed(2)}%</td>
+                <td>${(rate*100).toFixed(2)}%</td>
+                <td>${formatCurrency(fee)}</td>
+                <td>${formatCurrency(listing)}</td>
+              </tr>`;
+            }
+          });
+        }
+      });
+      html += `</table>`;
+      document.getElementById("output").innerHTML = html;
+    }
+  </script>
+</body>
+</html>
