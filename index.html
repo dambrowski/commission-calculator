@@ -7,21 +7,31 @@
     body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; }
     h1 { text-align: center; }
     img.brand { display: block; margin: 20px auto; max-width: 100%; height: auto; }
+
     label { display: block; margin: 10px 0 4px; font-weight: bold; }
     input { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
+    
     .nets { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    .row { display: flex; gap: 10px; }
+    .row  { display: flex; gap: 10px; }
     .row input { flex: 1; }
+    
     button { margin: 20px 0; padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
     th { background: #1F4E78; color: white; }
+
+    /* New reverse‐calc section */
+    #reverse { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ccc; }
+    #reverse button { display: block; width: 100%; }
+    #netOutput { margin-top: 10px; font-weight: bold; text-align: center; }
   </style>
 </head>
 <body>
   <h1>Commission Calculator</h1>
   <img src="david_0827306164.jpg" alt="Branding" class="brand" />
 
+  <!-- existing multi‐scenario inputs -->
   <label>Seller Net Amounts (R):</label>
   <div class="nets">
     <input class="net" placeholder="e.g. 2,700,000 or 2 700 000" type="text" />
@@ -46,19 +56,34 @@
   </div>
 
   <button onclick="calculate()">Calculate All</button>
-
   <div id="output"></div>
 
+  <!-- NEW: reverse calculation section -->
+  <div id="reverse">
+    <h2 style="text-align:center;">Reverse‐Calc: Seller Net from Listing</h2>
+    <label>Listing Price (R):</label>
+    <input id="listingPrice" placeholder="e.g. 3,000,000" type="text" />
+
+    <label>Commission % Excl. VAT:</label>
+    <input id="commissionSingle" placeholder="e.g. 5.75" type="text" />
+
+    <button onclick="reverseCalc()">Calculate Seller Net</button>
+    <div id="netOutput"></div>
+  </div>
+
   <script>
+    // Helpers
     function formatCurrency(x) {
       return "R" + x.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
     function parseNumber(str) {
       return parseFloat(str.replace(/[\s,]/g, ''));
     }
+
+    // Main multi‐scenario calculator
     function calculate() {
       const netEls = document.querySelectorAll("input.net");
-      const vat = parseFloat(document.getElementById("vat").value) / 100;
+      const vat = parseNumber(document.getElementById("vat").value) / 100;
       const commEls = document.querySelectorAll("input.comm");
       let html = `<table>
         <tr>
@@ -91,14 +116,25 @@
       html += `</table>`;
       document.getElementById("output").innerHTML = html;
     }
+
+    // NEW: Reverse‐calc: from Listing + Commission % → Seller Net
+    function reverseCalc() {
+      const listing = parseNumber(document.getElementById("listingPrice").value);
+      const c = parseNumber(document.getElementById("commissionSingle").value) / 100;
+      const vat = parseNumber(document.getElementById("vat").value) / 100;
+      if (isNaN(listing) || isNaN(c) || isNaN(vat)) {
+        document.getElementById("netOutput").textContent =
+          "Please enter valid numbers for both fields.";
+        return;
+      }
+      // total rate including VAT
+      const rateIncl = c * (1 + vat);
+      // seller net = listing × (1 – rateIncl)
+      const sellerNet = listing * (1 - rateIncl);
+      document.getElementById("netOutput").innerHTML =
+        `<p>Seller Net Amount: <strong>${formatCurrency(sellerNet)}</strong></p>`;
+    }
   </script>
-<!-- branding link -->
-<div style="max-width:600px; margin:30px auto 0; text-align:center;">
-  <a href="https://www.expsouthafrica.co.za/davidd"
-     target="_blank" rel="noopener"
-     style="font-size:14px; color:#1F4E78; text-decoration:none;">
-    Visit my main site: expsouthafrica.co.za/davidd
-  </a>
-</div>
 </body>
 </html>
+
